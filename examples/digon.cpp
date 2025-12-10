@@ -24,6 +24,9 @@ Point mouse;
 
 int main_window;
 
+extern int angle_step;
+
+void alpha_trans(int x);
 
 /**************************************** myGlutKeyboard() **********/
 void myGlutKeyboard(unsigned char Key, int x, int y) {
@@ -45,11 +48,26 @@ void myGlutMenu(int value) {
 /***************************************** myGlutMouse() **********/
 void myGlutMouse(int button, int button_state, int x, int y) {
     if (button == GLUT_LEFT_BUTTON && button_state == GLUT_DOWN) {
-        //Point Q = {mouse.x, sy - mouse.y};    
         for (int i = 0; i < points.size(); ++i) {
             if (dist(mouse, points[i]) <= point_rad) {
                 pressed[i] = true;
-            }       
+            }
+        }
+    }
+    if (button == 3 && button_state == GLUT_DOWN) {
+        if (dist(mouse, A) <= point_rad) {
+            alpha_trans(angle_step);
+        }
+        if (dist(mouse, B) <= point_rad) {
+            alpha_trans(angle_step);
+        }
+    }
+    if (button == 4 && button_state == GLUT_DOWN) {
+        if (dist(mouse, A) <= point_rad) {
+            alpha_trans(-angle_step);
+        }
+        if (dist(mouse, B) <= point_rad) {
+            alpha_trans(-angle_step);
         }
     }
 }
@@ -97,51 +115,24 @@ void myGlutReshape( int x, int y ) {
 /***************************************** myGlutDisplay() *****************/
 
 void myGlutDisplay() {
-    /*glClearColor( .9f, .9f, .9f, 1.0f );
-    glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 
-    glMatrixMode( GL_PROJECTION );
-    glLoadIdentity();
-    glFrustum( -xy_aspect*.08, xy_aspect*.08, -.08, .08, .1, 15.0 );
-    
-
-    glMatrixMode( GL_MODELVIEW );
-    glLoadIdentity();
-    glTranslatef( 0.0f, 0.0f, -1.6f );
-    glRotatef( rotationY, 0.0, 1.0, 0.0 );
-    glRotatef( rotationX, 1.0, 0.0, 0.0 );
-
-    /*** Now we render object, using the variables 'obj', 'segments', and
-    'wireframe'.  These are _live_ variables, which are transparently
-    updated by GLUI ***/
-    
     glClearColor( .9f, .9f, .9f, 1.0f );
     glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
-    
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    //glFrustum( -xy_aspect*.08, xy_aspect*.08, -.08, .08, .1, 15.0 );
-    
- 
-    // Given the coordinates
-    //gluOrtho2D(0.0, 800.0, 0.0, 600.0);
-    //gluOrtho2D(0.0, sx, 0.0, sy);
-    gluOrtho2D(0, sx, 0, sy);    
-    glViewport(0, 0, sx, sy);    
-    
-    
+    gluOrtho2D(0, sx, 0, sy);
+    glViewport(0, 0, sx, sy);
+
     D.draw();
     for (const Point& P : points) {
-        //Point Q = {mouse.x, sy - mouse.y};    
-		if (dist(P, mouse) <= point_rad) {    
+		if (dist(P, mouse) <= point_rad) {
 		    glColor3d(1.0, 0.3, 0.3);
 		} else {
 		    glColor3d(0.3, 0.3, 1.0);
 		}
-		P.draw();   
+		P.draw();
     }
     glColor3d(0.3, 0.3, 1.0);
-    
     glFlush();
     glutSwapBuffers();
 }
@@ -151,22 +142,16 @@ void bisector_cb(int control) {
     glutPostRedisplay();
 }
 
-void alpha_trans(int control) {
-    static int prev = 0;
-    static int angle = 0;
+void alpha_trans(int x) {
     static int digon = 45;
-    
-    angle = static_cast<int>(angles[0]);
-    digon += angle - prev;
-    prev = angle;
+    digon += x;
     if (digon <= 0) {
         digon = 1;
-    }    
+    }
     if (digon >= 360) {
         digon = 359;
     }
     D.alpha = M_PI / 180 * digon;
-    
     glutPostRedisplay();
 }
 
@@ -188,8 +173,6 @@ void orientation_trans(int control) {
     
     glutPostRedisplay();
 }
-
-
 
 /**************************************** main() ********************/
 
@@ -238,7 +221,6 @@ int main(int argc, char* argv[]) {
     GLUI *glui = GLUI_Master.create_glui( "GLUI", 0, 800, 50 ); /* name, flags, x, and y */
     
     new GLUI_Checkbox(glui, "Bisector", 0, 0, bisector_cb);
-    new GLUI_Translation(glui, "Digon angle", GLUI_TRANSLATION_Y, angles, 0, alpha_trans);    
     new GLUI_Translation(glui, "Digon position", GLUI_TRANSLATION_X, &angles[1], 0, orientation_trans); 
     
     new GLUI_Button(glui, "Quit", 0, (GLUI_Update_CB)exit);
